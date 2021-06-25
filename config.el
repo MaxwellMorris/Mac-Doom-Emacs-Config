@@ -42,45 +42,45 @@
 
 
 
-(global-prettify-symbols-mode +1)
 
-
+(global-prettify-symbols-mode +1)                                                      ;;
+                                                                                       ;;
+(add-hook! 'org-mode-hook 'enhance-ui-for-orgmode)
+                                                                                       ;;
 (defun enhance-ui-for-orgmode ()
-  "Enhance UI for orgmode."
-  (toggle-truncate-lines)
-  (linum-mode -1)
-  ;; Beautify Org Checkbox Symbol
-  (push '("[ ]" . "") prettify-symbols-alist)  ;;
-  (push '("[X]" . "" ) prettify-symbols-alist) ;;
-  (push '("[-]" . "" ) prettify-symbols-alist) ;;
-  (push '("#+BEGIN_SRC" . "⌜" ) prettify-symbols-alist)
-  (push '("#+END_SRC" . "⌞" ) prettify-symbols-alist)
-  ;; (push '("TODO" . "" ) prettify-symbols-alist)
-  ;; (push '("DONE" . "" ) prettify-symbols-alist)
-  (prettify-symbols-mode)
-  (set-face-attribute 'org-level-1 nil :height 1.0 :background nil :weight 'bold)
-  (set-face-attribute 'org-level-2 nil :height 1.0 :background nil :weight 'semi-bold)
-  (dolist (face '(org-level-3 org-level-4 org-level-5))
-    (set-face-attribute face nil :weight 'normal :height 1.0))
-  (setq org-fontify-done-headline t)
-  (set-face-attribute 'org-done nil :strike-through t)
-  (set-face-attribute 'org-headline-done nil
-                      :strike-through t
-                      :foreground "dark gray"))
+  ;"Enhance UI for orgmode."                                                            ;;
+  (toggle-truncate-lines)                                                              ;;
+  (linum-mode -1)                                                                      ;;
+  ;; Beautify Org Checkbox Symbol                                                      ;;
+  (push '("[ ]" . "") prettify-symbols-alist)  ;;                                     ;;
+  (push '("[X]" . "" ) prettify-symbols-alist) ;;                                     ;;
+  (push '("[-]" . "" ) prettify-symbols-alist) ;;                                     ;;
+  (push '("#+BEGIN_SRC" . "⌜" ) prettify-symbols-alist)                                ;;
+  (push '("#+END_SRC" . "⌞" ) prettify-symbols-alist)                                  ;;
+  (push '("TODO" . "" ) prettify-symbols-alist)                                    ;;
+  (push '("DONE" . "" ) prettify-symbols-alist)                                    ;;
+  (prettify-symbols-mode)                                                              ;;
+  (set-face-attribute 'org-level-1 nil :height 1.0 :background nil :weight 'bold)      ;;
+  (set-face-attribute 'org-level-2 nil :height 1.0 :background nil :weight 'semi-bold) ;;
+  (dolist (face '(org-level-3 org-level-4 org-level-5))                                ;;
+  (set-face-attribute face nil :weight 'normal :height 1.0))                         ;;
+  (setq org-fontify-done-headline t)                                                   ;;
+  (set-face-attribute 'org-done nil :strike-through t)                                 ;;
+  (set-face-attribute 'org-headline-done nil                                           ;;
+                      :strike-through t                                                ;;
+                      :foreground "dark gray"))                                        ;;
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (add-hook 'org-mode-hook (lambda ()                   ;;
-;;    "Beautify Org Checkbox Symbol"                ;;
-;;    (push '("[ ]" . "") prettify-symbols-alist)  ;;
-;;    (push '("[X]" . "" ) prettify-symbols-alist) ;;
-;;    (push '("[-]" . "ﯰ" ) prettify-symbols-alist) ;;
-;;    (prettify-symbols-mode)))                     ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(setq org-todo-keywords '((sequence "☛ TODO(t)" "|" "✔ DONE(d)")
-(sequence "⚑ WAITING(w)" "|")
-(sequence "|" "✘ CANCELED(c)")))
+
+
+(add-hook 'org-mode-hook (lambda ()                   ;;
+   "Beautify Org Checkbox Symbol"                ;;
+   (push '("[ ]" . "") prettify-symbols-alist)  ;;
+   (push '("[X]" . "" ) prettify-symbols-alist) ;;
+   (push '("[-]" . "ﯰ" ) prettify-symbols-alist) ;;
+   (prettify-symbols-mode)))                     ;;
+
 
 ;;;ORG SUPERSTAR
 (with-eval-after-load 'org-superstar
@@ -101,18 +101,11 @@
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type nil)
-
-(use-package! org-roam
-  :init
-  (setq org-roam-directory "~/Dropbox/org/orgroam")
-  (setq org-roam-completion-system 'default)
-)
-
+;;; ORG ROAM
+(setq org-roam-directory "~/Dropbox/org/orgroam")
 
 ;;; ORG ROAM SERVER
-
-(use-package org-roam-server
-  :ensure t
+(use-package! org-roam-server
   :config
   (setq org-roam-server-host "127.0.0.1"
         org-roam-server-port 8080
@@ -144,9 +137,6 @@
 ;; they are implemented.
 (require 'org-roam-protocol)
 
-
 (add-hook! 'org-mode-hook '+org-pretty-mode)
-(add-hook! 'org-mode-hook 'enhance-ui-for-orgmode)
-(add-hook 'after-init-hook 'org-roam-mode)
 
 (toggle-frame-fullscreen)
