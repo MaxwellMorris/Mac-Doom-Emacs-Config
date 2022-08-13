@@ -3,20 +3,9 @@
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 
-
-;; Some functionality uses this to identify you, e.g. GPG configuration, email
-;; clients, file templates and snippets.
+;;; EMAIL
 (setq user-full-name "Maxwell Morris"
       user-mail-address "maxwell.morris@protonmail.com")
-
-;; Doom exposes five (optional) variables for controlling fonts in Doom. Here
-;; are the three important ones:
-;;
-;; + `doom-font'
-;; + `doom-variable-pitch-font'
-;; + `doom-big-font' -- used for `doom-big-font-mode'; use this for
-;;   presentations or streaming.
-;;
 
 ;;; FONTS
 (setq doom-font (font-spec :family "Jetbrains Mono" :size 13 :weight 'semi-light)
@@ -28,59 +17,10 @@
   '(font-lock-comment-face :slant italic)
   '(font-lock-comment-face :slant italic))
 
-;; There are two ways to load a theme. Both assume the theme is installed and
-;; available. You can either set `doom-theme' or manually load a theme with the
-;; `load-theme' function. This is the default:
+;;; THEME
 (setq doom-theme 'doom-dracula)
 
 (add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
-
-
-;; If you use `org' and don't want your org files in the default location below,
-;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/Dropbox/org/")
-
-
-
-
-(global-prettify-symbols-mode +1)                                                      ;;
-                                                                                       ;;
-(add-hook! 'org-mode-hook 'enhance-ui-for-orgmode)
-                                                                                       ;;
-(defun enhance-ui-for-orgmode ()
-  ;"Enhance UI for orgmode."                                                            ;;
-  (toggle-truncate-lines)                                                              ;;
-  (linum-mode -1)                                                                      ;;
-  ;; Beautify Org Checkbox Symbol                                                      ;;
-  (push '("[ ]" . "") prettify-symbols-alist)  ;;                                     ;;
-  (push '("[X]" . "" ) prettify-symbols-alist) ;;                                     ;;
-  (push '("[-]" . "" ) prettify-symbols-alist) ;;                                     ;;
-  (push '("#+BEGIN_SRC" . "⌜" ) prettify-symbols-alist)                                ;;
-  (push '("#+END_SRC" . "⌞" ) prettify-symbols-alist)                                  ;;
-  (push '("TODO" . "" ) prettify-symbols-alist)                                    ;;
-  (push '("DONE" . "" ) prettify-symbols-alist)                                    ;;
-  (prettify-symbols-mode)                                                              ;;
-  (set-face-attribute 'org-level-1 nil :height 1.0 :background nil :weight 'bold)      ;;
-  (set-face-attribute 'org-level-2 nil :height 1.0 :background nil :weight 'semi-bold) ;;
-  (dolist (face '(org-level-3 org-level-4 org-level-5))                                ;;
-  (set-face-attribute face nil :weight 'normal :height 1.0))                         ;;
-  (setq org-fontify-done-headline t)                                                   ;;
-  (set-face-attribute 'org-done nil :strike-through t)                                 ;;
-  (set-face-attribute 'org-headline-done nil                                           ;;
-                      :strike-through t                                                ;;
-                      :foreground "dark gray"))                                        ;;
-
-
-
-
-
-(add-hook 'org-mode-hook (lambda ()                   ;;
-   "Beautify Org Checkbox Symbol"                ;;
-   (push '("[ ]" . "") prettify-symbols-alist)  ;;
-   (push '("[X]" . "" ) prettify-symbols-alist) ;;
-   (push '("[-]" . "ﯰ" ) prettify-symbols-alist) ;;
-   (prettify-symbols-mode)))                     ;;
-
 
 ;;;ORG SUPERSTAR
 (with-eval-after-load 'org-superstar
@@ -104,20 +44,22 @@
 ;;; ORG ROAM
 (setq org-roam-directory "~/Dropbox/org/orgroam")
 
-;;; ORG ROAM SERVER
-(use-package! org-roam-server
-  :config
-  (setq org-roam-server-host "127.0.0.1"
-        org-roam-server-port 8080
-        org-roam-server-authenticate nil
-        org-roam-server-export-inline-images t
-        org-roam-server-serve-files nil
-        org-roam-server-served-file-extensions '("pdf" "mp4" "ogv")
-        org-roam-server-network-poll t
-        org-roam-server-network-arrows nil
-        org-roam-server-network-label-truncate t
-        org-roam-server-network-label-truncate-length 60
-        org-roam-server-network-label-wrap-length 20))
+;; Org-Roam UI
+(use-package! websocket
+    :after org-roam)
+
+(use-package! org-roam-ui
+    :after org-roam ;; or :after org
+;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+;;         a hookable mode anymore, you're advised to pick something yourself
+;;         if you don't care about startup time, use
+;;  :hook (after-init . org-roam-ui-mode)
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start t))
+
 
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
@@ -135,8 +77,16 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
-(require 'org-roam-protocol)
 
 (add-hook! 'org-mode-hook '+org-pretty-mode)
 
 (toggle-frame-fullscreen)
+
+(defun mm/PushWebsite()
+  "This function runs the functions required to update my site.
+   Exports the file to HTML.
+   Then starts a magit commit"
+  (interactive)
+  (org-html-export-to-html)
+  (magit)
+  )

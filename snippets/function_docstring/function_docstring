@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: function_docstring
+# uuid:
+# key: fd
+# condition: t
+# --
+def ${1:name}($2):
+ \"\"\"$3
+ ${2:$(python-args-to-docstring)}
+ \"\"\"
+$0

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: LATEX:frac
+# key: /
+# --
+\frac{$1}{$2}

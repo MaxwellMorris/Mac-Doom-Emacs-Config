@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: intro for file
+# uuid:
+# key: introtxt
+# condition: t
+# --
+
+Name: Maxwell Morris
+Date: `(current-date-string)`
+References: $1
+Description: $0

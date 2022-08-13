@@ -48,4 +48,6 @@
 ;(unpin! pinned-package another-pinned-package)
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
-(package! org-roam-server)
+;(package! org-ref)
+(unpin! org-roam)
+(package! org-roam-ui)
