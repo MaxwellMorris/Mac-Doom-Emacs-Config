@@ -49,5 +49,13 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
 ;(package! org-ref)
-(unpin! org-roam)
-(package! org-roam-ui)
+(package! lsp-grammarly)
+(package! ox-report)
+(package! org-ai)
+(package! chatgpt-shell)
+(package! shell-maker)
+(package! cmake-ide)
+
+;; (package! stm32
+;;  :recipe (:host github :repo "/https://github.com/SL-RU/stm32-emacs.git"
+;;           :files ("stm32.el")))

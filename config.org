@@ -1,0 +1,191 @@
+* Maxwell Morris's Doom Emacs Config
+
+#+begin_src emacs-lisp
+;;; EMAIL
+(setq user-full-name "Maxwell Morris"
+      user-mail-address "maxwell.morris@protonmail.com")
+
+;;; FONTS
+;; (setq doom-font (font-spec :family "Jetbrains Mono" :size 13 :weight 'semi-light)
+;;       doom-variable-pitch-font (font-spec :family "Noto Serif" :size 13))
+(after! doom-themes
+  (setq doom-themes-enable-bold t
+        doom-themes-enable-italic t))
+(custom-set-faces!
+  '(font-lock-comment-face :slant italic)
+  '(font-lock-comment-face :slant italic))
+
+;;; THEME
+
+(add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
+
+;;;ORG SUPERSTAR
+(with-eval-after-load 'org-superstar
+  (set-face-attribute 'org-superstar-item nil :height 1.3)
+  (set-face-attribute 'org-superstar-header-bullet nil :height 1.3)
+  (set-face-attribute 'org-superstar-leading nil :height 1.4));; Set different bullets, with one getting a terminal fallback.
+(setq org-superstar-headline-bullets-list
+      '("◉" "◈" "◎" "◌"))
+;; Set up a different marker for graphic display.
+(setq org-superstar-first-inlinetask-bullet ?🞸)
+;; Stop cycling bullets to emphasize hierarchy of headlines.
+(setq org-superstar-cycle-headline-bullets nil)
+;; A simple period works fine, too.
+(setq org-superstar-leading-fallback ?.)
+(setq org-ellipsis "  ")
+
+
+;; This determines the style of line numbers in effect. If set to `nil', line
+;; numbers are disabled. For relative line numbers, set this to `relative'.
+(setq display-line-numbers-type nil)
+
+;; LATEX CONFIG
+(with-eval-after-load 'ox-latex
+(add-to-list 'org-latex-classes
+        '("ieee"
+                "\\documentclass{IEEEtran}"
+                ("\\section{%s}" . "\\section*{%s}")
+                ("\\subsection{%s}" . "\\subsection*{%s}")
+                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+(add-to-list 'org-latex-classes
+        '("thesis"
+               "\\documentclass{mitthesis}"
+                ("\\section{%s}" . "\\section*{%s}")
+                ("\\subsection{%s}" . "\\subsection*{%s}")
+                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+)
+
+;; Here are some additional functions/macros that could help you configure Doom:
+;;
+;; - `load!' for loading external *.el files relative to this one
+;; - `use-package!' for configuring packages
+;; - `after!' for running code after a package has loaded
+;; - `add-load-path!' for adding directories to the `load-path', relative to
+;;   this file. Emacs searches the `load-path' when you load packages with
+;;   `require' or `use-package'.
+;; - `map!' for binding new keys
+;;
+;; To get information about any of these functions/macros, move the cursor over
+;; the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
+;; This will open documentation for it, including demos of how they are used.
+;;
+;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
+;; they are implemented.
+;; (load! "~/.hammerspoon/Spoons/editWithEmacs.spoon/hammerspoon.el")
+(add-hook! 'org-mode-hook '+org-pretty-mode)
+
+(setq captain-predicate 1 )
+(after! org
+  (setq org-directory "/Users/maxwellmorris/Dropbox/org"))
+(use-package lsp-grammarly
+  :ensure t
+  :hook (org-mode . (lambda ()
+                       (require 'lsp-grammarly)
+                       (lsp))))  ; or lsp-deferred
+
+(defun mm/PushWebsite()
+  "This function runs the functions required to update my site.
+   Exports the file to HTML.
+   Then starts a magit commit"
+  (interactive)
+  (org-html-export-to-html)
+  (magit)
+)
+
+(defun mm/org-save-and-export-koma-letter-pdf ()
+  (if (eq major-mode 'org-mode)
+    (org-koma-letter-export-to-pdf)))
+
+(add-to-list 'load-path "~/.emacs.d/.local/straight/repos/org-mode/contrib/lisp/")
+(eval-after-load 'ox '(require 'ox-koma-letter))
+
+(setq! mm/Bibliographies '("/Users/maxwellmorris/Dropbox/Uni/MyThesis/References/ThesisBib.bib"))
+(setq! citar-bibliography mm/Bibliographies)
+
+(setq org-cite-csl-styles-dir "~/Zotero/styles")
+
+(setq! org-download-image-dir '("."))
+
+(setq! citar-templates
+      '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
+        (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords:*}")
+        (preview . "${author editor} (${year issued date}) ${title}, ${journal journaltitle publisher container-title collection-title}.\n")
+        (note . "Notes on ${author editor}, ${title}")))
+(setq citar-symbols
+      `((file ,(all-the-icons-faicon "file-o" :face 'all-the-icons-green :v-adjust -0.1) . " ")
+        (note ,(all-the-icons-material "speaker_notes" :face 'all-the-icons-blue :v-adjust -0.3) . " ")
+        (link ,(all-the-icons-octicon "link" :face 'all-the-icons-orange :v-adjust 0.01) . " ")))
+(setq citar-symbol-separator "  ")
+
+(after! org
+     (setq org-latex-pdf-process
+       (let
+           ((cmd (concat "pdflatex -shell-escape -interaction nonstopmode"
+                 " --synctex=1"
+                 " -output-directory %o %f")))
+         (list cmd
+           "cd %o; if test -r %b.idx; then makeindex %b.idx; fi"
+           "cd %o; bibtex %b"
+           cmd
+           cmd)))
+)
+
+(setq org-latex-listings 'minted
+      org-latex-packages-alist '(("" "minted"))
+      org-latex-pdf-process
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+
+
+(setq deft-directory "/Users/maxwellmorris/Dropbox/org/journal"
+      deft-default-extension "org"
+      deft-recursive t)
+(setq org-journal-date-prefix "#+TITLE: "
+      org-journal-time-prefix "* "
+      org-journal-date-format "%a, %d %m %Y"
+      org-journal-file-format "%Y-%m-%d.org")
+(setq org-babel-python-command "python3")
+
+;; (setq org-ditaa-jar-path "/opt/homebrew/bin/ditaa")
+(after! (org ob-ditaa) (setq org-ditaa-jar-path "/opt/homebrew/bin/ditaa"))
+(setq org-plantuml-jar-path "/opt/homebrew/bin/plantuml")
+(after! org (setq org-ditaa-jar-path "/Users/maxwellmorris/.emacs.d/.local/straight/ditaa0_9/ditaa0_9.jar"))
+(after! org (setq org-plantuml-jar-path "/Users/maxwellmorris/.emacs.d/.local/straight/plantuml/plantuml-1.2023.10.jar"))
+(setq org-ai-openai-api-token "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")
+(setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
+
+(setq chatgpt-shell-openai-key "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")
+(setq chatgpt-shell-model-version "gpt-4")
+(use-package! cmake-ide
+  :commands (cmake-ide-setup)
+  :init
+  (add-hook 'c++-mode-hook (lambda () (cmake-ide-setup))))
+
+(setq flycheck-c/c++-clang-executable "/usr/bin/clang")
+(after! flycheck
+  (add-to-list 'flycheck-clang-include-path "/opt/local/include/"))
+
+(after! persp-mode
+  ;; Auto-save current session before quitting
+  (add-hook 'kill-emacs-hook #'persp-state-save)
+
+  ;; Load last session on startup
+  (add-hook 'after-init-hook #'persp-state-load))
+
+(when (fboundp 'persp-state-save)
+ (desktop-save-mode 1))
+
+(setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH")))
+(setq exec-path (append exec-path '("/opt/homebrew/bin")))
+(setq ccls-executable "/opt/homebrew/bin/ccls")  ; usually "/usr/local/bin/ccls" or "/opt/homebrew/bin/ccls"
+
+(after! ccls
+  (setq ccls-initialization-options '(:index (:comments 2) :completion (:detailedLabel t)))
+  (set-lsp-priority! 'ccls 2)) ; optional as ccls is the default in Doom
+#+end_src
