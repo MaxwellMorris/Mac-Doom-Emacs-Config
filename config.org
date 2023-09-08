@@ -157,10 +157,8 @@
 (setq org-plantuml-jar-path "/opt/homebrew/bin/plantuml")
 (after! org (setq org-ditaa-jar-path "/Users/maxwellmorris/.emacs.d/.local/straight/ditaa0_9/ditaa0_9.jar"))
 (after! org (setq org-plantuml-jar-path "/Users/maxwellmorris/.emacs.d/.local/straight/plantuml/plantuml-1.2023.10.jar"))
-(setq org-ai-openai-api-token "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")
 (setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
 
-(setq chatgpt-shell-openai-key "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")
 (setq chatgpt-shell-model-version "gpt-4")
 (use-package! cmake-ide
   :commands (cmake-ide-setup)
