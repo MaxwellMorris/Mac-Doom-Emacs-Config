@@ -186,4 +186,31 @@
 (after! ccls
   (setq ccls-initialization-options '(:index (:comments 2) :completion (:detailedLabel t)))
   (set-lsp-priority! 'ccls 2)) ; optional as ccls is the default in Doom
+
+(with-eval-after-load 'eglot
+    (setenv "PATH" (concat (getenv "PATH") ":/home/maxwell/.npm-global/bin"))
+    (setq exec-path (append exec-path '("/home/maxwell/.npm-global/bin")))
+    (add-to-list 'eglot-server-programs '(python-mode . ("pyright-langserver" "--stdio")))
+    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+    )
+(defun my/remote-eglot-hook ()
+  "Configure eglot for remote Python development."
+  (when (file-remote-p default-directory)
+    (add-to-list 'eglot-server-programs
+                 `(python-mode . ("/snap/pyright/684/bin/pyright")))))
+
+(add-hook 'eglot--managed-mode-hook #'my/remote-eglot-hook)
+(add-hook 'python-mode-hook 'anaconda-mode)
+(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
+(eval-after-load "company"
+  '(add-to-list 'company-backends 'company-anaconda))
+
+(defun my-set-python-interpreter ()
+  "Set the Python interpreter based on the location of the file."
+  (if (file-remote-p default-directory)
+      (setq-local python-shell-interpreter "/ssh:sdr@134.7.50.164:/usr/bin/python")
+    (setq-local python-shell-interpreter "python3"))) ; or whatever your local interpreter is
+
+(add-hook 'python-mode-hook #'my-set-python-interpreter)
+
 #+end_src
