@@ -128,7 +128,7 @@
 (setq! mm/Bibliographies '("~/Dropbox/Uni/MyThesis/References/ThesisBib.bib"))
 (setq! citar-bibliography mm/Bibliographies)
 
-(setq org-cite-csl-styles-dir "~/Zotero/styles")
+(setq org-cite-csl-styles-dir "~/Dropbox/org/styles/")
 
 (setq! org-download-image-dir '("."))
 
