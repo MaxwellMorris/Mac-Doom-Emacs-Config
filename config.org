@@ -74,6 +74,12 @@
                ("\\paragraph{%s}" . "\\paragraph*{%s}")
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 )
+;; Place to put the latex class files, e.g.
+(setenv "TEXINPUTS"
+        (concat "~/Dropbox/org/latexclasses//:"
+                (getenv "TEXINPUTS")))
+
+
 
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
@@ -228,5 +234,7 @@
     (setq-local python-shell-interpreter "python3"))) ; or whatever your local interpreter is
 
 (add-hook 'python-mode-hook #'my-set-python-interpreter)
+
+
 
 #+end_src
