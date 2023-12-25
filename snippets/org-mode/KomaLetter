@@ -1,0 +1,50 @@
+# -*- mode: snippet -*-
+# name: Koma Letter
+# uuid: KomaLetter
+# key: <kltr
+# condition: t
+# --
+
+* Preamble :noexport:
+#+TITLE: $0
+#+DATE: \today
+#+LCO: DINmtext
+#       envelope standards of your country.
+# NOTE: Change the order of the backletter, use smart quotes and
+#       include backaddress
+# Example #+OPTIONS: after-closing-order:(my_after_signature ps cc encl)
+#+OPTIONS: after-closing-order:(my_after_signature)
+#+LATEX_CLASS_OPTIONS: [firstfooter=false]
+#+options: ':t backaddress:t subject:centered
+#+CITE_EXPORT: csl ieee.csl
+#+bibliography: "/Users/maxwellmorris/Dropbox/Misc/Letters/GF.bib"
+# Remove the first header
+#+LATEX_HEADER: \setkomavar{firsthead}{}
+#+LATEX_HEADER: \usepackage[margin=0.5in]{geometry}
+* To-address :to:
+# NOTE: Explicit newlines are not necessary in TO and FROM
+Unit 609 501 Little Collins Street
+Melbourne 3000
+Australia
+* From :from:
+Shelley, Perth
+* Location :location:
+#+LATEX_HEADER: \usepackage{tikz}
+#+LATEX_HEADER: \usepackage{hyperref}
+
+* Dear ,
+# NOTE: Your letter is the first non-special heading.  The title of
+# this heading may used as an opening.
+
+#+BEGIN_VERSE
+
+#+END_VERSE
+* Sincerely, :closing:
+Maxwell Morris
+* some arbitrary LaTeX code :my_after_signature:
+#+BEGIN_EXPORT latex
+\vspace{2mm}
+\begin{tabular}{@{}p{2.5in}p{2in}p{2in}@{}}
+\hrulefill && Date: \today
+\end{tabular}
+#+END_EXPORT
