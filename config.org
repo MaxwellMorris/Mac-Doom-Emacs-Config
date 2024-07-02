@@ -1,5 +1,15 @@
-* Maxwell Morris's Doom Emacs Config
+* ### Non-config ###
 
+** Discussion about config and helpful emacs tips
+** Tips
+*** Edit src block in major mode
+"Protip: C-c ' opens up the org src block under the cursor into its major mode, which allows you to edit as if it was in a .el file. C-c ' again saves the block."
+
+*** Vim Registers
+1. Yank to a register by doing ~"ay~ that is [S-' a y]
+
+* ### CONFIG STARTS ###
+** Personal Config
 #+begin_src emacs-lisp
 ;;; EMAIL
 (setq user-full-name "Maxwell Morris"
@@ -14,7 +24,12 @@
 (custom-set-faces!
   '(font-lock-comment-face :slant italic)
   '(font-lock-comment-face :slant italic))
+#+end_src
 
+
+* Org
+** Org Mode
+#+begin_src emacs-lisp
 ;;; THEME
 
 (add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
@@ -39,7 +54,17 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type nil)
 
+#+end_src
+
+** Org Latex Config
+#+begin_src emacs-lisp
 ;; LATEX CONFIG
+
+;; Place to put the latex class files, e.g.
+(setenv "TEXINPUTS"
+        (concat "~/Dropbox/org/latexclasses//:"
+                (getenv "TEXINPUTS")))
+
 (with-eval-after-load 'ox-latex
 (add-to-list 'org-latex-classes
         '("ieee"
@@ -74,13 +99,14 @@
                ("\\paragraph{%s}" . "\\paragraph*{%s}")
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 )
-;; Place to put the latex class files, e.g.
-(setenv "TEXINPUTS"
-        (concat "~/Dropbox/org/latexclasses//:"
-                (getenv "TEXINPUTS")))
 
+#+end_src
 
+#+begin_src emacs-lisp
+#+end_src
 
+** Org Config
+#+begin_src emacs-lisp
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
 ;; - `load!' for loading external *.el files relative to this one
@@ -132,6 +158,9 @@
 
 (setq! org-download-image-dir '("."))
 
+(use-package all-the-icons
+  :ensure t)
+
 (after! citar
 (setq! citar-templates
       '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
@@ -147,7 +176,7 @@
 (after! org
      (setq org-latex-pdf-process
        (let
-           ((cmd (concat "pdflatex -shell-escape -interaction nonstopmode"
+           ((cmd (concat "lualatex -shell-escape -interaction nonstopmode"
                  " --synctex=1"
                  " -output-directory %o %f")))
          (list cmd
@@ -160,11 +189,13 @@
 (setq org-latex-listings 'minted
       org-latex-packages-alist '(("" "minted"))
       org-latex-pdf-process
-      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+      '("lualatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "lualatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+#+end_src
 
 
-
+#+begin_src emacs-lisp
 (setq deft-directory "~/Dropbox/org/journal"
       deft-default-extension "org"
       deft-recursive t)
@@ -172,7 +203,7 @@
       org-journal-time-prefix "* "
       org-journal-date-format "%a, %d %m %Y"
       org-journal-file-format "%Y-%m-%d.org")
-(setq org-babel-python-command "python3")
+(setq org-babel-python-command "/Users/maxwellmorris/anaconda3/bin/python3")
 
 ;; (setq org-ditaa-jar-path "/opt/homebrew/bin/ditaa")
 (after! (org ob-ditaa) (setq org-ditaa-jar-path "/opt/homebrew/bin/ditaa"))
@@ -235,6 +266,62 @@
 
 (add-hook 'python-mode-hook #'my-set-python-interpreter)
 
+(setq lsp-enable-indentation nil)
+
+(after! tex
+  (setq TeX-engine 'luatex))
+(setq undo-tree-visualizer-timestamps t)
+(setq undo-tree-visualizer-relative-timestamps t)
+(setq undo-in-region t)
+;; (after! calc
+;;   (map! :map calc-mode-map
+;;         "C-o" #'casual-main-menu))
+(setq org-element-use-cache nil)
+(setq delete-by-moving-to-trash t)
 
 
+;; Yas snippet templates from latex doc templates
+;; (setq yas-snippet-dirs (append yas-snippet-dirs
+;;                                '("~/dropbox/org/latexclasses")))
+
+(defvar my-template-directory "~/dropbox/org/doctemplates/"
+  "Directory where your template files are stored.")
+
+(defun mjm-insert-template (new-file-name)
+  "Prompt the user to select a template file and insert its contents into a new file.
+Argument NEW-FILE-NAME is the name of the new file to create."
+  (interactive "FCreate new file from template: ")
+  (let* ((templates (directory-files my-template-directory nil "\\.org$"))
+         (template (completing-read "Select template: " templates nil t)))
+    (if (and template (not (string= template "")))
+        (let ((template-file (concat (file-name-as-directory my-template-directory) template)))
+          (copy-file template-file new-file-name)
+          (find-file new-file-name)
+          (message "New file created from template: %s" new-file-name))
+      (message "No template selected or template file does not exist"))))
+
+(after! org
+  (org-link-set-parameters
+   "sec"
+   :follow (lambda (path)
+             (org-id-goto path))
+   :export (lambda (path desc backend)
+             (cond
+              ((eq backend 'html) (format "<a href=\"#%s\">%s</a>" path (or desc path)))
+              ((eq backend 'latex) (format "\\ref{%s}" path))))))
+
+(with-eval-after-load 'ox
+  (defun my/org-latex-nameautoref-filter (text backend info)
+    "Replace \\ref commands with \\nameautorefB in LaTeX export for sections only."
+    (when (org-export-derived-backend-p backend 'latex)
+      (let ((section-labels '("sec:" "chap:" "Appendix:"))) ; Add your section prefixes here
+        (dolist (prefix section-labels)
+          (setq text (replace-regexp-in-string
+                      (format "\\\\ref{%s\\([a-zA-Z0-9:-]+\\)}" prefix)
+                      (format "\\\\nameautorefB{%s\\1}" prefix)
+                      text))))
+      text))
+
+  (add-to-list 'org-export-filter-link-functions
+               'my/org-latex-nameautoref-filter))
 #+end_src
