@@ -6,7 +6,7 @@
 "Protip: C-c ' opens up the org src block under the cursor into its major mode, which allows you to edit as if it was in a .el file. C-c ' again saves the block."
 
 *** Vim Registers
-1. Yank to a register by doing ~"ay~ that is [S-' a y]
+1. Yank to a register by doing ~"ay~ that is [S-' a y] this would copy whatever region is yanked to register a
 
 * ### CONFIG STARTS ###
 ** Personal Config
@@ -135,23 +135,11 @@
                        (require 'lsp-grammarly)
                        (lsp))))  ; or lsp-deferred
 
-(defun mm/PushWebsite()
-  "This function runs the functions required to update my site.
-   Exports the file to HTML.
-   Then starts a magit commit"
-  (interactive)
-  (org-html-export-to-html)
-  (magit)
-)
-
-(defun mm/org-save-and-export-koma-letter-pdf ()
-  (if (eq major-mode 'org-mode)
-    (org-koma-letter-export-to-pdf)))
 
 (add-to-list 'load-path "~/.emacs.d/.local/straight/repos/org-mode/contrib/lisp/")
 (eval-after-load 'ox '(require 'ox-koma-letter))
 
-(setq! mm/Bibliographies '("~/Dropbox/Uni/MyThesis/References/ThesisBib.bib"))
+(setq! mm/Bibliographies '("~/Dropbox/org/references/cira_references.bib"))
 (setq! citar-bibliography mm/Bibliographies)
 
 (setq org-cite-csl-styles-dir "~/Dropbox/org/styles/")
@@ -192,13 +180,6 @@
       '("lualatex -shell-escape -interaction nonstopmode -output-directory %o %f"
         "lualatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
 
-#+end_src
-
-
-#+begin_src emacs-lisp
-(setq deft-directory "~/Dropbox/org/journal"
-      deft-default-extension "org"
-      deft-recursive t)
 (setq org-journal-date-prefix "#+TITLE: "
       org-journal-time-prefix "* "
       org-journal-date-format "%a, %d %m %Y"
@@ -206,13 +187,27 @@
 (setq org-babel-python-command "/Users/maxwellmorris/anaconda3/bin/python3")
 
 ;; (setq org-ditaa-jar-path "/opt/homebrew/bin/ditaa")
-(after! (org ob-ditaa) (setq org-ditaa-jar-path "/opt/homebrew/bin/ditaa"))
-(setq org-plantuml-jar-path "/opt/homebrew/bin/plantuml")
-(after! org (setq org-ditaa-jar-path "/Users/maxwellmorris/.emacs.d/.local/straight/ditaa0_9/ditaa0_9.jar"))
-(after! org (setq org-plantuml-jar-path "/Users/maxwellmorris/.emacs.d/.local/straight/plantuml/plantuml-1.2023.10.jar"))
-(setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((ditaa . t))) ; this line activates ditaa
 
-(setq chatgpt-shell-model-version "gpt-4")
+
+(after! org
+  (setq org-ditaa-jar-path "")
+  (setq org-babel-ditaa-java-cmd "ditaa")
+  (setq org-ditaa-jar-option "")
+  (defun my-org-ditaa-copy-and-run (orig-fun &rest args)
+    (let* ((cmd (car args))
+           (temp-dir "/tmp/org-ditaa/")
+           (in-file (nth 1 (split-string cmd " ")))
+           (out-file (nth 2 (split-string cmd " "))))
+      (make-directory temp-dir :parents)
+      (copy-file in-file (concat temp-dir "input.ditaa") t)
+      (setf (car args) (format "ditaa %s %s" (concat temp-dir "input.ditaa") out-file))
+      (apply orig-fun args)))
+  (advice-add 'org-babel-execute:ditaa :around #'my-org-ditaa-copy-and-run))
+
+(setq org-plantuml-jar-path "/opt/homebrew/bin/plantuml")
 (use-package! cmake-ide
   :commands (cmake-ide-setup)
   :init
@@ -284,6 +279,60 @@
 ;; (setq yas-snippet-dirs (append yas-snippet-dirs
 ;;                                '("~/dropbox/org/latexclasses")))
 
+
+(after! org
+  (org-link-set-parameters
+   "sec"
+   :follow (lambda (path)
+             (org-id-goto path))
+   :export (lambda (path desc backend)
+             (cond
+              ((eq backend 'html) (format "<a href=\"#%s\">%s</a>" path (or desc path)))
+              ((eq backend 'latex) (format "\\ref{%s}" path))))))
+
+
+;; (use-package! evil-owl
+;;         :config
+;;         (setq evil-owl-max-string-length 500)
+;;         (add-to-list 'display-buffer-alist
+;;                 '("*evil-owl*"
+;;                         (display-buffer-in-side-window)
+;;                         (side . bottom)
+;;                         (window-height . 0.3)))
+;;                         (evil-owl-mode))
+
+
+(use-package evil-owl
+  :config
+  (setq evil-owl-display-method 'posframe
+        evil-owl-extra-posframe-args '(:width 50 :height 20)
+        evil-owl-max-string-length 50)
+  (evil-owl-mode))
+
+
+
+;; (setq matlab-confirm-functionname-match nil)
+#+end_src
+
+* Custom Personel Emacs Functions
+#+begin_src emacs-lisp
+
+(defun mm/PushWebsite()
+  "This function runs the functions required to update my site.
+   Exports the file to HTML.
+   Then starts a magit commit"
+  (interactive)
+  (org-html-export-to-html)
+  (magit)
+)
+
+(defun mm/org-save-and-export-koma-letter-pdf ()
+  (if (eq major-mode 'org-mode)
+    (org-koma-letter-export-to-pdf)))
+
+
+
+;; # Function to create a new file from personel org templates
 (defvar my-template-directory "~/dropbox/org/doctemplates/"
   "Directory where your template files are stored.")
 
@@ -300,16 +349,9 @@ Argument NEW-FILE-NAME is the name of the new file to create."
           (message "New file created from template: %s" new-file-name))
       (message "No template selected or template file does not exist"))))
 
-(after! org
-  (org-link-set-parameters
-   "sec"
-   :follow (lambda (path)
-             (org-id-goto path))
-   :export (lambda (path desc backend)
-             (cond
-              ((eq backend 'html) (format "<a href=\"#%s\">%s</a>" path (or desc path)))
-              ((eq backend 'latex) (format "\\ref{%s}" path))))))
 
+
+;; # Helps with referencing appendicies in org mode docs
 (with-eval-after-load 'ox
   (defun my/org-latex-nameautoref-filter (text backend info)
     "Replace \\ref commands with \\nameautorefB in LaTeX export for sections only."
@@ -324,4 +366,92 @@ Argument NEW-FILE-NAME is the name of the new file to create."
 
   (add-to-list 'org-export-filter-link-functions
                'my/org-latex-nameautoref-filter))
+
+
+;; (defun deft-daily-note ()
+;;   "Create or open a unique daily note for today, using a template file if the note is new."
+;;   (interactive)
+;;   (let* ((template-file "~/Dropbox/org/doctemplates/daily-template.org") ; Adjust the path as necessary
+;;          (daily-file (expand-file-name (format-time-string "%Y-%m-%d.org") deft-directory)))
+;;     (if (file-exists-p daily-file)
+;;         (find-file daily-file) ; Open the existing file
+;;       (progn
+;;         (copy-file template-file daily-file) ; Copy template to new file
+;;         (find-file daily-file) ; Open the new file
+;;         (message "New daily note created from template.")))))
+
+(after! deft
+
+;; Correct the prefix definition for Deft-related commands
+;; Define 'n d' as a prefix and then bind specific commands under it
+;; Adjust your Doom Emacs configuration to properly define 'n d' as a prefix
+(map! :leader
+      (:prefix ("n" . "Notes")
+       (:prefix-map ("d" . "Deft")
+        :desc "Open Deft" "o" #'deft
+        :desc "New Deft Daily" "d" #'deft-daily-note)))
+
+(setq deft-directory "~/Dropbox/org/journal"
+        deft-default-extension "org"
+        deft-recursive t)
+
+(defun deft-daily-note ()
+  "Create or open a unique daily note for today, using a template file if the note is new. Also, ensure LSP is activated."
+  (interactive)
+  (let* ((template-file "~/Dropbox/org/doctemplates/daily-template.org") ; Adjust the path as necessary
+         (daily-file (expand-file-name (format-time-string "%Y-%m-%d.org") deft-directory)))
+    (if (file-exists-p daily-file)
+        (find-file daily-file) ; Open the existing file
+      (progn
+        (copy-file template-file daily-file) ; Copy template to new file
+        (find-file daily-file) ; Open the new file
+        (message "New daily note created from template.")))
+    )) ; Start LSP, replace `lsp-deferred` with `lsp` if you want immediate activation
+
+
+                )
+
+
+
+
+
+
+(defvar my/nano-agenda-frame nil
+  "Frame containing the nano agenda")
+
+(defun my/nano-agenda-toggle ()
+  "Show an agenda in a dedicated frame"
+
+  (interactive)
+  (if (not (and my/nano-agenda-frame (frame-live-p my/nano-agenda-frame)))
+      (progn
+        (setq my/nano-agenda-frame (make-frame '((width . 80)
+                                                 (height . 20))))
+        (select-frame-set-input-focus my/nano-agenda-frame)
+        (modify-frame-parameters my/nano-agenda-frame
+                                 '((user-position . t)
+                                   (top . 50)
+                                   (left . (- 10))))
+        (select-frame-set-input-focus my/nano-agenda-frame)
+        (nano-agenda))
+    (if (frame-visible-p my/nano-agenda-frame)
+        (let ((frames (frame-list)))
+          (make-frame-invisible my/nano-agenda-frame)
+          (catch 'visible-frame
+            (dolist (frame frames)
+              (when (frame-visible-p frame)
+                (select-frame-set-input-focus frame)
+                (throw 'visible-frame nil)))))
+      (make-frame-visible my/nano-agenda-frame))
+    (nano-agenda-update)))
+
+(use-package! org
+  :config
+  (setq org-agenda-files (directory-files-recursively "~/Dropbox/org/agenda/" "\\.org$"))
+  (setq org-capture-templates
+        '(("t" "Todo with Deadline" entry (file+headline "~/Dropbox/org/agenda/new-todo.org" "Tasks")
+           "* TODO %?\n  DEADLINE: %^t\n  %i\n  %a"))))
+
+
+
 #+end_src

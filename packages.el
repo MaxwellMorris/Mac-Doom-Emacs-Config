@@ -55,6 +55,13 @@
 (package! chatgpt-shell)
 (package! shell-maker)
 (package! cmake-ide)
+(package! org-ref)
+(package! evil-owl)
+(package! svg-lib)
+(package! nano-agenda
+  :recipe (:host github :repo "rougier/nano-agenda"))
+
+;; (package! casual)
 
 ;; (package! stm32
 ;;  :recipe (:host github :repo "/https://github.com/SL-RU/stm32-emacs.git"
