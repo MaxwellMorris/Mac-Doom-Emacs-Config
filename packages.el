@@ -49,10 +49,10 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
 ;(package! org-ref)
-(package! lsp-grammarly)
+;; (package! lsp-grammarly)
 (package! ox-report)
-(package! org-ai)
-(package! chatgpt-shell)
+;; (package! org-ai)
+;; (package! chatgpt-shell)
 (package! shell-maker)
 (package! cmake-ide)
 (package! org-ref)
@@ -60,7 +60,8 @@
 (package! svg-lib)
 (package! nano-agenda
   :recipe (:host github :repo "rougier/nano-agenda"))
-
+(package! org-download)
+(package! verilog-ext)
 ;; (package! casual)
 
 ;; (package! stm32

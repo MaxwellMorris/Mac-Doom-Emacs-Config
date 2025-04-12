@@ -98,6 +98,14 @@
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                ("\\paragraph{%s}" . "\\paragraph*{%s}")
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+(add-to-list 'org-latex-classes
+             '("max_personal_tn"
+               "\\documentclass{max_personal_tn}"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 )
 
 #+end_src
@@ -128,12 +136,13 @@
 
 (setq captain-predicate 1 )
 (after! org
-  (setq org-directory "/Users/maxwellmorris/Dropbox/org"))
-(use-package lsp-grammarly
-  :ensure t
-  :hook (org-mode . (lambda ()
-                       (require 'lsp-grammarly)
-                       (lsp))))  ; or lsp-deferred
+  (setq org-directory "/Users/maxwellmorris/Dropbox/org")
+  (setq org-todo-keyword-for-item-entries t))
+;; (use-package lsp-grammarly
+;;   :ensure t
+;;   :hook (org-mode . (lambda ()
+;;                        (require 'lsp-grammarly)
+;;                        (lsp))))  ; or lsp-deferred
 
 
 (add-to-list 'load-path "~/.emacs.d/.local/straight/repos/org-mode/contrib/lisp/")
@@ -146,8 +155,8 @@
 
 (setq! org-download-image-dir '("."))
 
-(use-package all-the-icons
-  :ensure t)
+;; (use-package all-the-icons
+;;   :ensure t)
 
 (after! citar
 (setq! citar-templates
@@ -155,10 +164,10 @@
         (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords:*}")
         (preview . "${author editor} (${year issued date}) ${title}, ${journal journaltitle publisher container-title collection-title}.\n")
         (note . "Notes on ${author editor}, ${title}")))
-(setq citar-symbols
-      `((file ,(all-the-icons-faicon "file-o" :face 'all-the-icons-green :v-adjust -0.1) . " ")
-        (note ,(all-the-icons-material "speaker_notes" :face 'all-the-icons-blue :v-adjust -0.3) . " ")
-        (link ,(all-the-icons-octicon "link" :face 'all-the-icons-orange :v-adjust 0.01) . " ")))
+;; (setq citar-symbols
+;;       `((file ,(all-the-icons-faicon "file-o" :face 'all-the-icons-green :v-adjust -0.1) . " ")
+;;         (note ,(all-the-icons-material "speaker_notes" :face 'all-the-icons-blue :v-adjust -0.3) . " ")
+;;         (link ,(all-the-icons-octicon "link" :face 'all-the-icons-orange :v-adjust 0.01) . " ")))
 (setq citar-symbol-separator "  "))
 
 (after! org
@@ -182,8 +191,15 @@
 
 (setq org-journal-date-prefix "#+TITLE: "
       org-journal-time-prefix "* "
-      org-journal-date-format "%a, %d %m %Y"
+      org-journal-date-format "%a, %d-%m-%Y"
       org-journal-file-format "%Y-%m-%d.org")
+(defun my/update-org-agenda-files ()
+  "Update org-agenda-files to include new journal entries."
+  (setq org-agenda-files (directory-files-recursively "~/Dropbox/org/journal/" "\\.org$")))
+
+(add-hook 'org-journal-after-entry-create-hook #'my/update-org-agenda-files)
+
+
 (setq org-babel-python-command "/Users/maxwellmorris/anaconda3/bin/python3")
 
 ;; (setq org-ditaa-jar-path "/opt/homebrew/bin/ditaa")
@@ -235,23 +251,41 @@
   (setq ccls-initialization-options '(:index (:comments 2) :completion (:detailedLabel t)))
   (set-lsp-priority! 'ccls 2)) ; optional as ccls is the default in Doom
 
-(with-eval-after-load 'eglot
-    (setenv "PATH" (concat (getenv "PATH") ":/home/maxwell/.npm-global/bin"))
-    (setq exec-path (append exec-path '("/home/maxwell/.npm-global/bin")))
-    (add-to-list 'eglot-server-programs '(python-mode . ("pyright-langserver" "--stdio")))
-    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-    )
-(defun my/remote-eglot-hook ()
-  "Configure eglot for remote Python development."
-  (when (file-remote-p default-directory)
-    (add-to-list 'eglot-server-programs
-                 `(python-mode . ("/snap/pyright/684/bin/pyright")))))
+;; (with-eval-after-load 'eglot
+;;     (setenv "PATH" (concat (getenv "PATH") ":/home/maxwell/.npm-global/bin"))
+;;     (setq exec-path (append exec-path '("/home/maxwell/.npm-global/bin")))
+;;     (add-to-list 'eglot-server-programs '(python-mode . ("pyright-langserver" "--stdio")))
+;;     (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+;;     )
+;; (defun my/remote-eglot-hook ()
+;;   "Configure eglot for remote Python development."
+;;   (when (file-remote-p default-directory)
+;;     (add-to-list 'eglot-server-programs
+;;                  `(python-mode . ("/snap/pyright/684/bin/pyright")))))
 
-(add-hook 'eglot--managed-mode-hook #'my/remote-eglot-hook)
-(add-hook 'python-mode-hook 'anaconda-mode)
-(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
+;; (add-hook 'eglot--managed-mode-hook #'my/remote-eglot-hook)
+;; (add-hook 'python-mode-hook 'anaconda-mode)
+;; (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
 (eval-after-load "company"
   '(add-to-list 'company-backends 'company-anaconda))
+
+(after! flycheck
+  (flycheck-define-checker python-ruff
+    "A Python syntax and style checker using Ruff."
+    :command ("ruff" "check" source-inplace)
+    :error-patterns
+    ((error line-start (file-name) ":" line ":" column ": " (id "E" (one-or-more digit)) " " (message) line-end)
+     (warning line-start (file-name) ":" line ":" column ": " (id "W" (one-or-more digit)) " " (message) line-end))
+    :modes python-mode)
+  (add-to-list 'flycheck-checkers 'python-ruff))
+
+(after! lsp-mode
+  (setq lsp-pyright-server-command '("pyright-langserver" "--stdio"))
+  (setq lsp-pyright-disable-organize-imports nil)
+  (setq lsp-pyright-auto-import-completions t))
+
+(add-hook 'python-mode-hook #'lsp!)
+
 
 (defun my-set-python-interpreter ()
   "Set the Python interpreter based on the location of the file."
@@ -416,42 +450,125 @@ Argument NEW-FILE-NAME is the name of the new file to create."
 
 
 
-(defvar my/nano-agenda-frame nil
-  "Frame containing the nano agenda")
+;; (defvar my/nano-agenda-frame nil
+;;   "Frame containing the nano agenda")
 
-(defun my/nano-agenda-toggle ()
-  "Show an agenda in a dedicated frame"
+;; (defun my/nano-agenda-toggle ()
+;;   "Show an agenda in a dedicated frame"
 
-  (interactive)
-  (if (not (and my/nano-agenda-frame (frame-live-p my/nano-agenda-frame)))
-      (progn
-        (setq my/nano-agenda-frame (make-frame '((width . 80)
-                                                 (height . 20))))
-        (select-frame-set-input-focus my/nano-agenda-frame)
-        (modify-frame-parameters my/nano-agenda-frame
-                                 '((user-position . t)
-                                   (top . 50)
-                                   (left . (- 10))))
-        (select-frame-set-input-focus my/nano-agenda-frame)
-        (nano-agenda))
-    (if (frame-visible-p my/nano-agenda-frame)
-        (let ((frames (frame-list)))
-          (make-frame-invisible my/nano-agenda-frame)
-          (catch 'visible-frame
-            (dolist (frame frames)
-              (when (frame-visible-p frame)
-                (select-frame-set-input-focus frame)
-                (throw 'visible-frame nil)))))
-      (make-frame-visible my/nano-agenda-frame))
-    (nano-agenda-update)))
+;;   (interactive)
+;;   (if (not (and my/nano-agenda-frame (frame-live-p my/nano-agenda-frame)))
+;;       (progn
+;;         (setq my/nano-agenda-frame (make-frame '((width . 80)
+;;                                                  (height . 20))))
+;;         (select-frame-set-input-focus my/nano-agenda-frame)
+;;         (modify-frame-parameters my/nano-agenda-frame
+;;                                  '((user-position . t)
+;;                                    (top . 50)
+;;                                    (left . (- 10))))
+;;         (select-frame-set-input-focus my/nano-agenda-frame)
+;;         (nano-agenda))
+;;     (if (frame-visible-p my/nano-agenda-frame)
+;;         (let ((frames (frame-list)))
+;;           (make-frame-invisible my/nano-agenda-frame)
+;;           (catch 'visible-frame
+;;             (dolist (frame frames)
+;;               (when (frame-visible-p frame)
+;;                 (select-frame-set-input-focus frame)
+;;                 (throw 'visible-frame nil)))))
+;;       (make-frame-visible my/nano-agenda-frame))
+;;     (nano-agenda-update)))
 
 (use-package! org
   :config
-  (setq org-agenda-files (directory-files-recursively "~/Dropbox/org/agenda/" "\\.org$"))
-  (setq org-capture-templates
-        '(("t" "Todo with Deadline" entry (file+headline "~/Dropbox/org/agenda/new-todo.org" "Tasks")
-           "* TODO %?\n  DEADLINE: %^t\n  %i\n  %a"))))
+  (setq org-agenda-files (directory-files-recursively "~/Dropbox/org/journal/" "\\.org$"))
+  ;; (setq org-capture-templates
+  ;;       '(("t" "Todo with Deadline" entry (file+headline "~/Dropbox/org/agenda/new-todo.org" "Tasks")
+  ;;          "* TODO %?\n  DEADLINE: %^t\n  %i\n  %a")))
 
 
 
+                )
+
+
+
+;; (use-package! org-download
+;;   :after org
+;;   :config
+;;   (setq org-download-method 'directory)
+;;   ;; Check if buffer-file-name is non-nil before setting the image directory
+;;   (setq org-download-image-dir
+;;         (if buffer-file-name
+;;             (concat (file-name-sans-extension (buffer-file-name)) "-img")
+;;           "./images")) ;; Default to ./images if buffer is not visiting a file
+;;   (setq org-download-image-org-width 600)
+;;   (setq org-download-link-format "[[file:%s]]\n")
+;;   (setq org-download-abbreviate-filename-function #'file-relative-name)
+;;   (setq org-download-link-format-function #'org-download-link-format-function-default))
+
+
+
+(use-package! org-download
+  :after org
+  :config
+  (setq org-download-method 'directory)
+  (setq org-download-image-dir
+        (if buffer-file-name
+            (concat (file-name-sans-extension (buffer-file-name)) "-img")
+          "./images")) ;; Default to ./images if buffer is not visiting a file
+  (setq org-download-image-org-width 600)
+  (setq org-download-link-format "[[file:%s]]\n")
+  (setq org-download-abbreviate-filename-function #'file-relative-name)
+  (setq org-download-link-format-function
+        (lambda (filename)
+          (format "#+CAPTION: \n#+NAME: fig:\n#+ATTR_LATEX: :width 0.8\\textwidth\n[[file:%s]]\n" filename))))
+
+
+(setq display-line-numbers-type 'relative)
+
+;; (setq org-list-allow-alphabetical t)
+;; (defun my/org-add-checkbox ()
+;;   "Add [ ] to the beginning of the current Org list item (bulleted or numbered)."
+;;   (interactive)
+;;   (save-excursion
+;;     (beginning-of-line)
+;;     (when (org-at-item-p)
+;;       (let* ((struct (org-list-struct))
+;;              (marker (org-list-get-bullet (point) struct)))
+;;         (unless (save-excursion
+;;                   (beginning-of-line)
+;;                   (looking-at "^[ \t]*[-+*0-9.)]+[ \t]+\\[\\( |X\\)\\]"))
+;;           (re-search-forward (concat (regexp-quote marker) "\\(?: +\\)") (line-end-position) t)
+;;           (replace-match (concat marker " [ ] ") t t))))))
+(defun my/org-add-checkbox ()
+  "Add `[ ]` at the start of the current Org list item if it doesn't already have one."
+  (interactive)
+  (when (org-at-item-p)
+    (save-excursion
+      (beginning-of-line)
+      (cond
+       ;; Already has a checkbox?
+       ((looking-at "^[ \t]*[-+*0-9.)]+[ \t]+\\[[ X]\\]")
+        (message "Item already has a checkbox."))
+       ;; Insert new checkbox
+       ((looking-at "^\\([ \t]*[-+*0-9.)]+\\)\\([ \t]+\\)")
+        (replace-match (concat (match-string 1)
+                               (match-string 2)
+                               "[ ] ")
+                       t nil nil 0))))))
+
+;; Optional keybinding in Doom Emacs:
+(map! :map org-mode-map
+      :localleader
+      :desc "Add checkbox to current line"
+      "X" #'my/org-add-checkbox)
+
+
+
+;; (require 'verilog-ext)
+;; (verilog-ext-mode-setup)
+
+;; ;; Set up LSP server (e.g., Veridian)
+;; (verilog-ext-eglot-set-server 've-veridian) ; For `eglot`
+;; (verilog-ext-lsp-set-server 've-veridian)   ; For `lsp-mode`
 #+end_src
